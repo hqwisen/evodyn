@@ -1,15 +1,20 @@
 #!/bin/python3
 
-import numpy
+import numpy as np
+import matplotlib.pyplot as plot
 
 ACTIONS = {
     'C' : {
-        'value': 'cooperate',
-        'color': 'blue'
+        'name': 'cooperate',
+        # TODO use the colors in the plots
+        'color': 'blue',
+        'value': 0
+
     },
     'D' : {
-        'value' : 'defect',
-        'color' : 'red'
+        'name' : 'defect',
+        'color' : 'red',
+        'value' : 1
     }
 }
 
@@ -20,11 +25,8 @@ class Lattice:
         self.size = size
 
     def add_depth(self):
-        depth = []
-        for i in range(self.size):
-            depth.append([])
-            for j in range(self.size):
-                depth[i].append(None)
+        dims = (self.size, self.size)
+        depth = np.zeros(dims)
         self.l.append(depth)
         return depth
 
@@ -46,14 +48,19 @@ class Simulation:
 
     def play_random(self):
         coop_prob = self.config['start_coop_probability']
-        return numpy.random.choice(['C', 'D'], p=[coop_prob, 1 - coop_prob])
+        choice = np.random.choice(['C', 'D'], p=[coop_prob, 1 - coop_prob])
+        return ACTIONS[choice]['value']
+
 
     def first_round(self):
         current_round = self.lattice.add_depth()
         for i in range(self.size):
             for j in range(self.size):
-                current_round[i][j] = self.play_random()
+                current_round[i, j] = self.play_random()
 
+    def plot_current(self):
+        current = self.lattice.current()
+        
     def run(self):
         print("Running simulation..")
         self.first_round()
