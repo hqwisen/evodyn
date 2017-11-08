@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plot
 import matplotlib as mpl
+import random
 
 ACTIONS = {
     'C' : {
@@ -48,6 +49,7 @@ class Simulation:
         self.config = config
         self.size = config['size']
         self.lattice = Lattice(self.size)
+        self._number_of_round = None
 
     def play_random(self):
         """Play cooperate or defect based on config.start_coop_probability."""
@@ -73,11 +75,20 @@ class Simulation:
         plot.axis('off')
         plot.savefig('demo.png', bbox_inches='tight')
 
+    def nround(self):
+        """Return the number of rounds played.
+        Based on config.last_round scale."""
+        if self._number_of_round is None:
+            self._number_of_round = random.randint(self.config['last_round'][0],
+                                                   self.config['last_round'][1])
+        return self._number_of_round
+
     def run(self):
-        print("Running simulation..")
-        self.first_round()
-        print(self.lattice.current())
-        print(self.plot_current())
+        for t in range(self.nround()):
+            print("Round t", t)
+        # self.first_round()
+        # print(self.lattice.current())
+        # print(self.plot_current())
 
 def get_config():
     try:
