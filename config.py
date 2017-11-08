@@ -15,4 +15,4 @@ neighbor_type = 'moore' # moore, von_neumann
 update_mechanism = 'unconditional_imitation'
 time_visualize_all = True # If False, show only time_visualize steps
 time_visualize = (0, 1, 5, 10, 20, 50)
-last_round = (10, 10)
+last_round = (10, 10) # To fix the size, put the same value for both

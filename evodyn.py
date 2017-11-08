@@ -11,7 +11,6 @@ import logging
 ACTIONS = {
     'C' : {
         'name': 'cooperate',
-        # TODO use the colors in the plots
         'color': 'blue',
         'value': 0
 
@@ -93,7 +92,10 @@ class Simulation:
         return ACTIONS[choice]['value']
 
     def play(self):
-        return self.play_random()
+        if self.t == 0:
+            return self.play_random()
+        else:
+            pass
 
     def run(self):
         self.create_results_dir()
@@ -106,10 +108,6 @@ class Simulation:
             if self.config['time_visualize_all'] \
             or t in self.config['time_visualize']:
                 self.plot_current()
-
-
-        # print(self.lattice.current())
-        # print(self.plot_current())
 
 def get_config():
     try:
