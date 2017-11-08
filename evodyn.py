@@ -58,12 +58,6 @@ class Simulation:
         self.t = 0
         self.generate_results_dir()
 
-    def play_random(self):
-        """Play cooperate or defect based on config.start_coop_probability."""
-        coop_prob = self.config['start_coop_probability']
-        choice = np.random.choice(['C', 'D'], p=[coop_prob, 1 - coop_prob])
-        return ACTIONS[choice]['value']
-
     def plot_current(self):
         cmap = mpl.colors.ListedColormap([ACTIONS['C']['color'], \
                                           ACTIONS['D']['color']])
@@ -73,6 +67,7 @@ class Simulation:
         fig.axes.get_yaxis().set_visible(False)
         plot.axis('off')
         plot.savefig(self.results_fig(), bbox_inches='tight')
+        plot.close()
 
     def nround(self):
         """Return the number of rounds played.
@@ -90,21 +85,29 @@ class Simulation:
 
     def results_fig(self):
         return os.path.join(self.results_dir(), 't' + str(self.t))
-    def first_round(self):
-        """Play the first round randomly."""
-        current_round = self.lattice.add_matrix()
-        for i in range(self.size):
-            for j in range(self.size):
-                current_round[i, j] = self.play_random()
-        if 0 in self.config['time_visualize']:
-            self.plot_current()
+
+    def play_random(self):
+        """Play cooperate or defect based on config.start_coop_probability."""
+        coop_prob = self.config['start_coop_probability']
+        choice = np.random.choice(['C', 'D'], p=[coop_prob, 1 - coop_prob])
+        return ACTIONS[choice]['value']
+
+    def play(self):
+        return self.play_random()
 
     def run(self):
         self.create_results_dir()
-        self.first_round()
-        for t in range(1, self.nround()):
+        for t in range(self.nround()):
             self.t = t
-            pass
+            current_round = self.lattice.add_matrix()
+            for i in range(self.size):
+                for j in range(self.size):
+                    current_round[i, j] = self.play()
+            if self.config['time_visualize_all'] \
+            or t in self.config['time_visualize']:
+                self.plot_current()
+
+
         # print(self.lattice.current())
         # print(self.plot_current())
 
