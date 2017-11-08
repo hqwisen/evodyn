@@ -24,13 +24,15 @@ class Lattice:
         self.l = []
         self.size = size
 
-    def add_depth(self):
+    def add_matrix(self):
+        """Add a numpy.zeros matrix."""
         dims = (self.size, self.size)
-        depth = np.zeros(dims)
-        self.l.append(depth)
-        return depth
+        matrix = np.zeros(dims)
+        self.l.append(matrix)
+        return matrix
 
     def current(self):
+        """Return (current) last matrix."""
         return self.l[-1]
 
     def __str__(self):
@@ -47,12 +49,14 @@ class Simulation:
         self.lattice = Lattice(self.size)
 
     def play_random(self):
+        """Play cooperate or defect based on config.start_coop_probability."""
         coop_prob = self.config['start_coop_probability']
         choice = np.random.choice(['C', 'D'], p=[coop_prob, 1 - coop_prob])
         return ACTIONS[choice]['value']
 
 
     def first_round(self):
+        """Play the first round randomly."""
         current_round = self.lattice.add_depth()
         for i in range(self.size):
             for j in range(self.size):
@@ -60,7 +64,7 @@ class Simulation:
 
     def plot_current(self):
         current = self.lattice.current()
-        
+
     def run(self):
         print("Running simulation..")
         self.first_round()
