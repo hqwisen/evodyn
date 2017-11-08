@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plot
 import matplotlib as mpl
 import random
+import os
+import time
+import logging
 
 ACTIONS = {
     'C' : {
@@ -49,7 +52,10 @@ class Simulation:
         self.config = config
         self.size = config['size']
         self.lattice = Lattice(self.size)
-        self._number_of_round = None
+        self._number_of_round = random.randint(self.config['last_round'][0],
+                                               self.config['last_round'][1])
+        self._results_dir = None
+        self.generate_results_dir()
 
     def play_random(self):
         """Play cooperate or defect based on config.start_coop_probability."""
@@ -78,14 +84,21 @@ class Simulation:
     def nround(self):
         """Return the number of rounds played.
         Based on config.last_round scale."""
-        if self._number_of_round is None:
-            self._number_of_round = random.randint(self.config['last_round'][0],
-                                                   self.config['last_round'][1])
         return self._number_of_round
 
+    def generate_results_dir(self):
+        self._results_dir = 'results_' + time.strftime('%H:%M:%S')
+
+    def results_dir(self):
+        return self._results_dir
+
+    def create_results_dir(self):
+        os.mkdir(self.results_dir())
+
     def run(self):
+        self.create_results_dir()
         for t in range(self.nround()):
-            print("Round t", t)
+            pass
         # self.first_round()
         # print(self.lattice.current())
         # print(self.plot_current())
