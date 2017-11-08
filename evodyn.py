@@ -55,6 +55,7 @@ class Simulation:
         self._number_of_round = random.randint(self.config['last_round'][0],
                                                self.config['last_round'][1])
         self._results_dir = None
+        self.t = 0
         self.generate_results_dir()
 
     def play_random(self):
@@ -62,14 +63,6 @@ class Simulation:
         coop_prob = self.config['start_coop_probability']
         choice = np.random.choice(['C', 'D'], p=[coop_prob, 1 - coop_prob])
         return ACTIONS[choice]['value']
-
-
-    def first_round(self):
-        """Play the first round randomly."""
-        current_round = self.lattice.add_matrix()
-        for i in range(self.size):
-            for j in range(self.size):
-                current_round[i, j] = self.play_random()
 
     def plot_current(self):
         cmap = mpl.colors.ListedColormap([ACTIONS['C']['color'], \
@@ -79,7 +72,7 @@ class Simulation:
         fig.axes.get_xaxis().set_visible(False)
         fig.axes.get_yaxis().set_visible(False)
         plot.axis('off')
-        plot.savefig('demo.png', bbox_inches='tight')
+        plot.savefig(self.results_fig(), bbox_inches='tight')
 
     def nround(self):
         """Return the number of rounds played.
@@ -95,11 +88,23 @@ class Simulation:
     def create_results_dir(self):
         os.mkdir(self.results_dir())
 
+    def results_fig(self):
+        return os.path.join(self.results_dir(), 't' + str(self.t))
+    def first_round(self):
+        """Play the first round randomly."""
+        current_round = self.lattice.add_matrix()
+        for i in range(self.size):
+            for j in range(self.size):
+                current_round[i, j] = self.play_random()
+        if 0 in self.config['time_visualize']:
+            self.plot_current()
+
     def run(self):
         self.create_results_dir()
-        for t in range(self.nround()):
+        self.first_round()
+        for t in range(1, self.nround()):
+            self.t = t
             pass
-        # self.first_round()
         # print(self.lattice.current())
         # print(self.plot_current())
 
