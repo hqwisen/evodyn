@@ -2,6 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plot
+import matplotlib as mpl
 
 ACTIONS = {
     'C' : {
@@ -57,18 +58,26 @@ class Simulation:
 
     def first_round(self):
         """Play the first round randomly."""
-        current_round = self.lattice.add_depth()
+        current_round = self.lattice.add_matrix()
         for i in range(self.size):
             for j in range(self.size):
                 current_round[i, j] = self.play_random()
 
     def plot_current(self):
+        cmap = mpl.colors.ListedColormap([ACTIONS['C']['color'], \
+                                          ACTIONS['D']['color']])
         current = self.lattice.current()
+        fig = plot.matshow(current, cmap=cmap)
+        fig.axes.get_xaxis().set_visible(False)
+        fig.axes.get_yaxis().set_visible(False)
+        plot.axis('off')
+        plot.savefig('demo.png', bbox_inches='tight')
 
     def run(self):
         print("Running simulation..")
         self.first_round()
         print(self.lattice.current())
+        print(self.plot_current())
 
 def get_config():
     try:
