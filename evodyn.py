@@ -11,6 +11,9 @@ import shutil
 
 log = logging.getLogger(__name__)
 
+class SimulationException(Exception):
+    pass
+
 ACTIONS = {
     'C' : {
         'name': 'cooperate',
@@ -100,6 +103,12 @@ class Simulation:
     def results_fig(self):
         return os.path.join(self.results_dir(), 't' + str(self.t))
 
+    def is_update_mechanism(self, mechanism):
+        return self.update_mechanism() == mechanism
+
+    def update_mechanism(self):
+        return self.config['update_mechanism']
+
     def play_random(self):
         """Play cooperate or defect based on config.start_coop_probability."""
         coop_prob = self.config['start_coop_probability']
@@ -107,7 +116,11 @@ class Simulation:
         return ACTIONS[choice]['value']
 
     def play_mechanism(self):
-        return ACTIONS['D']['value']
+        if self.is_update_mechanism('unconditional_imitation'):
+            return self.play_unconditional_imitation()
+        else:
+            raise SimulationException("Unknown update \
+            mechanism '%s'" % self.update_mechanism())
 
     def play(self):
         if self.t == 0:

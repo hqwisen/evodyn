@@ -12,6 +12,7 @@ size = 50
 start_coop_probability = 0.5 # start_defect_prob = 1 - start_coop_prob
 game = prisoners_dilemma
 neighbor_type = 'moore' # moore, von_neumann
+# update_mechanism is: 'unconditional_imitation'
 update_mechanism = 'unconditional_imitation'
 time_visualize_all = False # If False, show only time_visualize steps
 time_visualize = (0, 1, 5, 10, 20, 50)
