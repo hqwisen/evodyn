@@ -7,6 +7,9 @@ import random
 import os
 import time
 import logging
+import shutil
+
+log = logging.getLogger(__name__)
 
 ACTIONS = {
     'C' : {
@@ -65,6 +68,7 @@ class Simulation:
         fig.axes.get_xaxis().set_visible(False)
         fig.axes.get_yaxis().set_visible(False)
         plot.axis('off')
+        log.warning("Plot t%d in '%s'" % (self.t,self.results_fig()))
         plot.savefig(self.results_fig(), bbox_inches='tight')
         plot.close()
 
@@ -74,13 +78,24 @@ class Simulation:
         return self._number_of_round
 
     def generate_results_dir(self):
-        self._results_dir = 'results_' + time.strftime('%H:%M:%S')
-
+        # self._results_dir = 'results_' + time.strftime('%H:%M:%S')
+        # TODO in production use with time
+        self._results_dir = 'results'
     def results_dir(self):
         return self._results_dir
 
     def create_results_dir(self):
-        os.mkdir(self.results_dir())
+        if self.config['results_dir_rm']:
+            if os.path.exists(self.results_dir()):
+                log.warning("Removing existing directory '%s'"
+                 % self.results_dir())
+                shutil.rmtree(self.results_dir())
+            log.warning("Creating new '%s' directory" % self.results_dir())
+            os.mkdir(self.results_dir())
+        else:
+            print("Abort. Results directory '" + self.results_dir() +
+            "' already exists.")
+            exit(1)
 
     def results_fig(self):
         return os.path.join(self.results_dir(), 't' + str(self.t))
@@ -91,11 +106,14 @@ class Simulation:
         choice = np.random.choice(['C', 'D'], p=[coop_prob, 1 - coop_prob])
         return ACTIONS[choice]['value']
 
+    def play_mechanism(self):
+        return ACTIONS['D']['value']
+
     def play(self):
         if self.t == 0:
             return self.play_random()
         else:
-            pass
+            return self.play_mechanism()
 
     def run(self):
         self.create_results_dir()
