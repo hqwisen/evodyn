@@ -28,6 +28,13 @@ ACTIONS = {
     }
 }
 
+class Neighbor:
+
+    @staticmethod
+    def moore(r, c, nrows, ncols):
+        neighbors = list()
+        
+last
 class Lattice:
 
     def __init__(self, size):
@@ -44,6 +51,10 @@ class Lattice:
     def current(self):
         """Return (current) last matrix."""
         return self.l[-1]
+
+    def previous(self):
+        """Return (previous) before last matrix."""
+        return self.l[-2]
 
     def __str__(self):
         return str(self.l)
@@ -81,9 +92,11 @@ class Simulation:
         return self._number_of_round
 
     def generate_results_dir(self):
-        # self._results_dir = 'results_' + time.strftime('%H:%M:%S')
         # TODO in production use with time
+        # self._results_dir = 'results_' + time.strftime('%H:%M:%S')
         self._results_dir = 'results'
+        self.create_results_dir()
+
     def results_dir(self):
         return self._results_dir
 
@@ -115,6 +128,10 @@ class Simulation:
         choice = np.random.choice(['C', 'D'], p=[coop_prob, 1 - coop_prob])
         return ACTIONS[choice]['value']
 
+    def play_unconditional_imitation(self):
+        previous, current =  self.lattice.previous(), self.lattice.current()
+
+
     def play_mechanism(self):
         if self.is_update_mechanism('unconditional_imitation'):
             return self.play_unconditional_imitation()
@@ -129,7 +146,6 @@ class Simulation:
             return self.play_mechanism()
 
     def run(self):
-        self.create_results_dir()
         for t in range(self.nround()):
             self.t = t
             current_round = self.lattice.add_matrix()
