@@ -109,6 +109,7 @@ class Simulation:
                                                self.config['last_round'][1])
         self._results_dir = None
         self.t = 0
+        self.coop_levels = []
         self.generate_results_dir()
 
     def build_payoff(self):
@@ -144,7 +145,8 @@ class Simulation:
             plot.colorbar()
         if self.config['time_visualize_all']:
             # print replacing to avoid too much output
-            print("\rPlot t{0} {1}".format(self.t, self.results_fig()), end='')
+            print("\rPlot t{0} {1} ( coop {2}% )".format(self.t,
+                self.results_fig(), self.current_coop_percentage()),end=' ')
         else:
             log.warning("Plot t%d in '%s'" % (self.t,self.results_fig()))
         plot.savefig(self.results_fig(), bbox_inches='tight')
@@ -227,6 +229,14 @@ class Simulation:
             score += self.payoff[player_action][neighbor_action]
         return score
 
+    def npeople(self):
+        """Return the number of people playing the game."""
+        return self.size * self.size
+
+    def current_coop_percentage(self):
+        ncoop = self.rounds.current_counts(ACTIONS['C']['value'])
+        return round((ncoop / self.npeople()) * 100, 2)
+
     def run(self):
         if self.config['time_visualize_all']:
             log.warning("All rounds will be plotted")
@@ -245,8 +255,9 @@ class Simulation:
             if self.config['time_visualize_all'] \
             or t in self.config['time_visualize']:
                 self.plot_current()
+            self.coop_levels.append(self.current_coop_percentage())
         print("\n\nSimulation finished!")
-
+    
 def get_config():
     try:
         config = {}

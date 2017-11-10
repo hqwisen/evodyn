@@ -35,9 +35,9 @@ snowdrift_game = {
 
 ### Game configuration ###
 
-size = 8
+size = 50
 # To have a fix number of rounds put the same value for both
-last_round = (3, 3)
+last_round = (50, 50)
 game = prisoners_dilemma
 # start_defect_probability = 1 - start_coop_probability
 start_coop_probability = 0.5
