@@ -14,7 +14,7 @@ snowdrift_game = {
     'payoff': (10, 7, 0, 3) # (T, R, P, S)
 }
 
-size = 50
+size = 5
 start_coop_probability = 0.5 # start_defect_prob = 1 - start_coop_prob
 game = prisoners_dilemma
 neighbor_type = 'moore' # moore, von_neumann

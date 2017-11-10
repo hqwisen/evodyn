@@ -110,8 +110,9 @@ class Simulation:
 
     def build_payoff(self):
         TRPS = self.config['game']['payoff']
-        return {'C': {'C': TRPS[1], 'D': TRPS[3]}, \
-                'D': {'C': TRPS[0], 'D': TRPS[2]}}
+        C, D = ACTIONS['C']['value'], ACTIONS['D']['value']
+        return {C: {C: TRPS[1], D: TRPS[3]}, \
+                D: {C: TRPS[0], D: TRPS[2]}}
 
     def neighbors(self, i, j):
         if self.config['neighbor_type'] == 'moore':
@@ -175,6 +176,7 @@ class Simulation:
 
     def play_unconditional_imitation(self):
         previous, current =  self.rounds.previous(), self.rounds.current()
+        return 0
 
 
     def play_mechanism(self):
@@ -194,6 +196,10 @@ class Simulation:
         current_round = self.rounds.current()
         neighbors = self.neighbors(i, j)
         score = 0
+        player_action = current_round[i, j]
+        for ni, nj in neighbors:
+            neighbor_action = current_round[ni, nj]
+            score += self.payoff[player_action][neighbor_action]
         return score
 
     def run(self):
