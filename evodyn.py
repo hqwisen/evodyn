@@ -237,7 +237,7 @@ class Simulation:
         ncoop = self.rounds.current_counts(ACTIONS['C']['value'])
         return round((ncoop / self.npeople()) * 100, 2)
 
-    def run(self):
+    def _run_simulation(self):
         if self.config['time_visualize_all']:
             log.warning("All rounds will be plotted")
         for t in range(self.nround()):
@@ -257,7 +257,14 @@ class Simulation:
                 self.plot_current()
             self.coop_levels.append(self.current_coop_percentage())
         print("\n\nSimulation finished!")
-    
+
+    def run(self):
+        try:
+            self._run_simulation()
+        except KeyboardInterrupt:
+            print("\n\nSimulation interupted.")
+            exit(130)
+
 def get_config():
     try:
         config = {}
