@@ -127,6 +127,14 @@ class Simulation:
             raise SimulationException("Unknown 'neighbor_type' \
             '%s'" % self.config['neighbor_type'])
 
+    def plot_coop_levels(self):
+        log.warning("Plot cooperation level in '%s'" % self.results_coop_fig())
+        plot.axis([0, self.nround() - 1, 0, 100])
+        plot.ylabel('Cooperation level in %')
+        plot.xlabel('Rounds')
+        plot.plot(self.coop_levels)
+        plot.savefig(self.results_coop_fig(), bbox_inches='tight')
+        plot.close()
 
 
     def plot_current(self):
@@ -147,6 +155,7 @@ class Simulation:
             # print replacing to avoid too much output
             print("\rPlot t{0} {1} ( coop {2}% )".format(self.t,
                 self.results_fig(), self.current_coop_percentage()),end=' ')
+            if self.t == self.nround() - 1: print()
         else:
             log.warning("Plot t%d in '%s'" % (self.t,self.results_fig()))
         plot.savefig(self.results_fig(), bbox_inches='tight')
@@ -181,6 +190,9 @@ class Simulation:
 
     def results_fig(self):
         return os.path.join(self.results_dir(), 't' + str(self.t))
+
+    def results_coop_fig(self):
+        return os.path.join(self.results_dir(), "coop")
 
     def is_update_mechanism(self, mechanism):
         return self.update_mechanism() == mechanism
@@ -256,7 +268,8 @@ class Simulation:
             or t in self.config['time_visualize']:
                 self.plot_current()
             self.coop_levels.append(self.current_coop_percentage())
-        print("\n\nSimulation finished!")
+        self.plot_coop_levels()
+        print("\nSimulation finished!")
 
     def run(self):
         try:

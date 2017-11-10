@@ -42,7 +42,7 @@ game = prisoners_dilemma
 # start_defect_probability = 1 - start_coop_probability
 start_coop_probability = 0.5
 # Accepted values: 'moore', 'von_neumann'
-neighbor_type = 'von_neumann'
+neighbor_type = 'moore'
 # Accepted values: 'unconditional_imitation'
 update_mechanism = 'unconditional_imitation'
 
