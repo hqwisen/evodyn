@@ -9,3 +9,5 @@ update mechanism, and each player has preferences between update mechanism
 to play in different situation
 
 * Simultaneous play, chances moves etc
+
+* Hydra jobs

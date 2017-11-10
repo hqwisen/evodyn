@@ -31,10 +31,42 @@ ACTIONS = {
 class Neighbor:
 
     @staticmethod
+    def up(r, nrows):
+        return r - 1 if r != 0 else (nrows - 1)
+
+    @staticmethod
+    def down(r, nrows):
+        return r + 1 if r != (nrows - 1) else 0
+
+    @staticmethod
+    def left(c, ncols):
+        return c - 1 if c != 0 else (ncols - 1)
+
+    @staticmethod
+    def right(c, ncols):
+        return c + 1 if c != (ncols - 1) else 0
+
+    @staticmethod
+    def alldirections(r, c, nrows, ncols):
+        """Return direction in the following order: (up, down, left, right)"""
+        return Neighbor.up(r, nrows), Neighbor.down(r, nrows),
+               Neighbor.left(c, ncols), Neighbor.right(c, ncols)
+
+    @staticmethod
     def moore(r, c, nrows, ncols):
-        neighbors = list()
-        
-last
+        up, down, left, right = Neighbor.alldirections(r, c, nrows, ncols)
+        return  (up, left), (up, c), (up, right),
+                (r, left), (r, right),
+                (down, left), (down, c), (down, right)
+
+    @staticmethod
+    def von_neumann(r, c, nrows, ncols):
+        up, down, left, right = Neighbor.alldirections(r, c, nrows, ncols)
+        return  (up, c),
+                (r, left), (r, right),
+                (down, c)
+
+
 class Lattice:
 
     def __init__(self, size):
