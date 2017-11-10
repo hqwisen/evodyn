@@ -49,21 +49,21 @@ class Neighbor:
     @staticmethod
     def alldirections(r, c, nrows, ncols):
         """Return direction in the following order: (up, down, left, right)"""
-        return Neighbor.up(r, nrows), Neighbor.down(r, nrows),
+        return Neighbor.up(r, nrows), Neighbor.down(r, nrows), \
                Neighbor.left(c, ncols), Neighbor.right(c, ncols)
 
     @staticmethod
     def moore(r, c, nrows, ncols):
         up, down, left, right = Neighbor.alldirections(r, c, nrows, ncols)
-        return  (up, left), (up, c), (up, right),
-                (r, left), (r, right),
+        return  (up, left), (up, c), (up, right), \
+                (r, left), (r, right), \
                 (down, left), (down, c), (down, right)
 
     @staticmethod
     def von_neumann(r, c, nrows, ncols):
         up, down, left, right = Neighbor.alldirections(r, c, nrows, ncols)
-        return  (up, c),
-                (r, left), (r, right),
+        return  (up, c), \
+                (r, left), (r, right), \
                 (down, c)
 
 
