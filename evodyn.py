@@ -128,7 +128,10 @@ class Simulation:
         fig.axes.get_xaxis().set_visible(False)
         fig.axes.get_yaxis().set_visible(False)
         plot.axis('off')
-        log.warning("Plot t%d in '%s'" % (self.t,self.results_fig()))
+        if self.config['time_visualize_all']:
+            print("\rPlot t{0} {1}".format(self.t, self.results_fig()), end='')
+        else:
+            log.warning("Plot t%d in '%s'" % (self.t,self.results_fig()))
         plot.savefig(self.results_fig(), bbox_inches='tight')
         plot.close()
 
@@ -211,6 +214,8 @@ class Simulation:
         return score
 
     def run(self):
+        if self.config['time_visualize_all']:
+            log.warning("All rounds will be plotted")
         for t in range(self.nround()):
             self.t = t
             # FIXME is it necessary to create new matrix for every new round
@@ -226,6 +231,7 @@ class Simulation:
             if self.config['time_visualize_all'] \
             or t in self.config['time_visualize']:
                 self.plot_current()
+        print("\n\nSimulation finished!")
 
 def get_config():
     try:
