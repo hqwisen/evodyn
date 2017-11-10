@@ -174,23 +174,31 @@ class Simulation:
         choice = np.random.choice(['C', 'D'], p=[coop_prob, 1 - coop_prob])
         return ACTIONS[choice]['value']
 
-    def play_unconditional_imitation(self):
-        previous, current =  self.rounds.previous(), self.rounds.current()
-        return 0
+    def play_unconditional_imitation(self, i, j):
+        previous_score = self.scores.previous()
+        previous_round = self.rounds.previous()
+        neighbors = self.neighbors(i, j)
+        # FIXME what happened if all neighbors have a score of 0
+        # FIXME maybe put bestaction to current action and not to None
+        best_action, best_score = None, 0
+        for ni, nj in neighbors:
+            # TODO >= or > for unconditional_imitation
+            if previous_score[ni, nj] > best_score:
+                best_action = previous_round[ni, nj]
+        return best_action
 
-
-    def play_mechanism(self):
+    def play_mechanism(self, i, j):
         if self.is_update_mechanism('unconditional_imitation'):
-            return self.play_unconditional_imitation()
+            return self.play_unconditional_imitation(i, j)
         else:
             raise SimulationException("Unknown update \
             mechanism '%s'" % self.update_mechanism())
 
-    def play(self):
+    def play(self, i, j):
         if self.t == 0:
             return self.play_random()
         else:
-            return self.play_mechanism()
+            return self.play_mechanism(i, j)
 
     def calculate_score(self, i, j):
         current_round = self.rounds.current()
@@ -211,7 +219,7 @@ class Simulation:
             current_round = self.rounds.add_matrix()
             for i in range(self.size):
                 for j in range(self.size):
-                    current_round[i, j] = self.play()
+                    current_round[i, j] = self.play(i, j)
             for i in range(self.size):
                 for j in range(self.size):
                     current_score[i, j] = self.calculate_score(i, j)
