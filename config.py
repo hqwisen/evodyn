@@ -1,11 +1,17 @@
+# Payoff matrix (player1, player2)
+#      C  |  D
+#  ------------
+# C | R,R | S,T
+# D | T,S | P,P
+
 prisoners_dilemma = {
-    'type':  'prisoner', # prisoner, snowdrift
-    'payoff': (10, 7, 3, 0) # (T, R, P, S)
+    'name':  'weak prisoner', # prisoner, snowdrift
+    'payoff': (10, 7, 0, 0) # (T, R, P, S)
 }
 
 snowdrift_game = {
-    'type':  'snowdrift', # prisoner, snowdrift
-    'payoff': (10, 7, 0, 0) # (T, R, P, S)
+    'name':  'snowdrift', # prisoner, snowdrift
+    'payoff': (10, 7, 0, 3) # (T, R, P, S)
 }
 
 size = 50

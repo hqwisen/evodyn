@@ -99,17 +99,30 @@ class Simulation:
     def __init__(self, config):
         self.config = config
         self.size = config['size']
-        self.lattice = Lattice(self.size)
+        self.payoff = self.build_payoff()
+        self.rounds = Lattice(self.size)
+        self.scores = Lattice(self.size)
         self._number_of_round = random.randint(self.config['last_round'][0],
                                                self.config['last_round'][1])
         self._results_dir = None
         self.t = 0
         self.generate_results_dir()
 
+    def build_payoff(self):
+        TRPS = self.config['game']['payoff']
+        return {'C': {'C': TRPS[1], 'D': TRPS[3]}, \
+                'D': {'C': TRPS[0], 'D': TRPS[2]}}
+
+    def neighbors(self, i, j):
+        if self.config['neighbor_type'] == 'moore':
+            return Neighbor.moore(i, j, self.size, self.size)
+        elif self.config['neighbor_type'] == 'von_neumann':
+            return Neighbor.von_neumann(i, j, self.size, self.size)
+
     def plot_current(self):
         cmap = mpl.colors.ListedColormap([ACTIONS['C']['color'], \
                                           ACTIONS['D']['color']])
-        current = self.lattice.current()
+        current = self.rounds.current()
         fig = plot.matshow(current, cmap=cmap)
         fig.axes.get_xaxis().set_visible(False)
         fig.axes.get_yaxis().set_visible(False)
@@ -161,7 +174,7 @@ class Simulation:
         return ACTIONS[choice]['value']
 
     def play_unconditional_imitation(self):
-        previous, current =  self.lattice.previous(), self.lattice.current()
+        previous, current =  self.rounds.previous(), self.rounds.current()
 
 
     def play_mechanism(self):
@@ -177,13 +190,25 @@ class Simulation:
         else:
             return self.play_mechanism()
 
+    def calculate_score(self, i, j):
+        current_round = self.rounds.current()
+        neighbors = self.neighbors(i, j)
+        score = 0
+        return score
+
     def run(self):
         for t in range(self.nround()):
             self.t = t
-            current_round = self.lattice.add_matrix()
+            # FIXME is it necessary to create new matrix for every new round
+            # FIXME to much memory used for this
+            current_score = self.scores.add_matrix()
+            current_round = self.rounds.add_matrix()
             for i in range(self.size):
                 for j in range(self.size):
                     current_round[i, j] = self.play()
+            for i in range(self.size):
+                for j in range(self.size):
+                    current_score[i, j] = self.calculate_score(i, j)
             if self.config['time_visualize_all'] \
             or t in self.config['time_visualize']:
                 self.plot_current()
