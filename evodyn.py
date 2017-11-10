@@ -88,6 +88,9 @@ class Lattice:
         """Return (previous) before last matrix."""
         return self.l[-2]
 
+    def current_counts(self, value):
+        return np.count_nonzero(self.current() == value)
+
     def __str__(self):
         return str(self.l)
 
@@ -126,6 +129,7 @@ class Simulation:
 
 
     def plot_current(self):
+        """Plot the self.rounds.current() matrix."""
         # NOTE from_level_colors will color blue between 0, 1 and
         # red between 1 and 2, there is maybe a better way for discrete values.
         levels = [0, 1, 2]
