@@ -119,16 +119,27 @@ class Simulation:
             return Neighbor.moore(i, j, self.size, self.size)
         elif self.config['neighbor_type'] == 'von_neumann':
             return Neighbor.von_neumann(i, j, self.size, self.size)
+        else:
+            raise SimulationException("Unknown 'neighbor_type' \
+            '%s'" % self.config['neighbor_type'])
+
+
 
     def plot_current(self):
-        cmap = mpl.colors.ListedColormap([ACTIONS['C']['color'], \
-                                          ACTIONS['D']['color']])
-        current = self.rounds.current()
-        fig = plot.matshow(current, cmap=cmap)
-        fig.axes.get_xaxis().set_visible(False)
-        fig.axes.get_yaxis().set_visible(False)
-        plot.axis('off')
+        # NOTE from_level_colors will color blue between 0, 1 and
+        # red between 1 and 2, there is maybe a better way for discrete values.
+        levels = [0, 1, 2]
+        colors = [ACTIONS['C']['color'], ACTIONS['D']['color']]
+        cmap, norm = mpl.colors.from_levels_and_colors(levels, colors)
+        fig = plot.matshow(self.rounds.current(), cmap=cmap, norm=norm)
+        if not self.config['show_axis']:
+            fig.axes.get_xaxis().set_visible(False)
+            fig.axes.get_yaxis().set_visible(False)
+            plot.axis('off')
+        if self.config['show_color_bar']:
+            plot.colorbar()
         if self.config['time_visualize_all']:
+            # print replacing to avoid too much output
             print("\rPlot t{0} {1}".format(self.t, self.results_fig()), end='')
         else:
             log.warning("Plot t%d in '%s'" % (self.t,self.results_fig()))

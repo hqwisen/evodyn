@@ -33,14 +33,28 @@ snowdrift_game = {
 #### Simulation configuration ####
 ##################################
 
-size = 50
-start_coop_probability = 0.5 # start_defect_prob = 1 - start_coop_prob
+### Game configuration ###
+
+size = 8
+# To have a fix number of rounds put the same value for both
+last_round = (3, 3)
 game = prisoners_dilemma
-neighbor_type = 'moore' # moore, von_neumann
-# update_mechanism is: 'unconditional_imitation'
+# start_defect_probability = 1 - start_coop_probability
+start_coop_probability = 0.5
+# Accepted values: 'moore', 'von_neumann'
+neighbor_type = 'moore'
+# Accepted values: 'unconditional_imitation'
 update_mechanism = 'unconditional_imitation'
-time_visualize_all = True # If False, show only time_visualize steps
+
+### Plot configuration ###
+
+# If False, show only time_visualize steps
+time_visualize_all = True
 time_visualize = (0, 1, 5, 10, 20, 50)
-last_round = (100, 100) # To fix the size, put the same value for both
- # If True: results directory that already exists is removed, program stop
+show_color_bar = False
+show_axis = True
+
+### EvoDyn configuration ###
+
+# If True: results directory that already exists is removed, program stop
 results_dir_rm = True

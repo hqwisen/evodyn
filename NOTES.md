@@ -16,3 +16,5 @@ to play in different situation
 
 In our implementation, a player keep his scores if it is the better from
 all of his neighbors
+
+Should previous_score[ni, nj] > best_score or >= ?
