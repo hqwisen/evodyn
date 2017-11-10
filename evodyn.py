@@ -181,13 +181,12 @@ class Simulation:
         previous_score = self.scores.previous()
         previous_round = self.rounds.previous()
         neighbors = self.neighbors(i, j)
-        # FIXME what happened if all neighbors have a score of 0
-        # FIXME maybe put bestaction to current action and not to None
-        best_action, best_score = None, 0
+        best_action, best_score = previous_round[i, j], previous_score[i, j]
         for ni, nj in neighbors:
             # TODO >= or > for unconditional_imitation
             if previous_score[ni, nj] > best_score:
                 best_action = previous_round[ni, nj]
+                best_score = previous_score[ni, nj]
         return best_action
 
     def play_mechanism(self, i, j):

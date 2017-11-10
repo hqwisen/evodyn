@@ -11,3 +11,8 @@ to play in different situation
 * Simultaneous play, chances moves etc
 
 * Hydra jobs
+
+# unconditional_imitation
+
+In our implementation, a player keep his scores if it is the better from
+all of his neighbors
