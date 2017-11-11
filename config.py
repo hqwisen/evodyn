@@ -33,11 +33,15 @@ snowdrift_game = {
 #### Simulation configuration ####
 ##################################
 
+### Simulation configuation ###
+
+number_of_simulations = 2
+
 ### Game configuration ###
 
 size = 50
 # To have a fix number of rounds put the same value for both
-last_round = (100, 100)
+last_round = (10, 10)
 # See defined games above
 game = snowdrift_game
 # start_defect_probability = 1 - start_coop_probability

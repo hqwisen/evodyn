@@ -9,7 +9,8 @@ import time
 import logging
 import shutil
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('EvoDyn')
+logging.basicConfig(level = logging.DEBUG)
 
 class SimulationException(Exception):
     pass
@@ -128,7 +129,7 @@ class Simulation:
             ": '%s'" % self.config['neighbor_type'])
 
     def plot_coop_levels(self):
-        log.warning("Plot cooperation level in '%s'" % self.results_coop_fig())
+        log.info("Plot cooperation level in '%s'" % self.results_coop_fig())
         plot.axis([0, self.nround() - 1, 0, 100])
         plot.ylabel('Cooperation level in %')
         plot.xlabel('Rounds')
@@ -157,7 +158,7 @@ class Simulation:
                 self.results_fig(), self.current_coop_percentage()),end=' ')
             if self.t == self.nround() - 1: print()
         else:
-            log.warning("Plot t%d in '%s'" % (self.t,self.results_fig()))
+            log.debug("Plot t%d in '%s'" % (self.t,self.results_fig()))
         plot.savefig(self.results_fig(), bbox_inches='tight')
         plot.close()
 
@@ -184,7 +185,7 @@ class Simulation:
             log.warning("Creating new '%s' directory" % self.results_dir())
             os.mkdir(self.results_dir())
         else:
-            print("Abort. Results directory '" + self.results_dir() +
+            log.error("Abort. Results directory '" + self.results_dir() +
             "' already exists.")
             exit(1)
 
@@ -265,7 +266,7 @@ class Simulation:
 
     def _run_simulation(self):
         if self.config['time_visualize_all']:
-            log.warning("All rounds will be plotted")
+            log.info("All rounds will be plotted")
         for t in range(self.nround()):
             self.t = t
             # FIXME is it necessary to create new matrix for every new round
@@ -283,14 +284,32 @@ class Simulation:
                 self.plot_current()
             self.coop_levels.append(self.current_coop_percentage())
         self.plot_coop_levels()
-        print("\nSimulation finished!")
+        log.info("Simulation finished!")
 
     def run(self):
         try:
             self._run_simulation()
         except KeyboardInterrupt:
-            print("\n\nSimulation interupted.")
+            log.error("Simulation interupted.")
             exit(130)
+
+class MultipleSimulation:
+
+    def __init__(self, config):
+        self.config = config
+
+    def run(self):
+        start_time = time.time()
+        nsimul = self.config['number_of_simulations']
+        for i in range(nsimul):
+            print()
+            log.info('Running simluation #%d' % i)
+            Simulation(self.config).run()
+        print()
+        log.info("%d simulations in %d seconds"
+                 % (nsimul, time.time() - start_time))
+
+
 
 def get_config():
     try:
@@ -300,7 +319,8 @@ def get_config():
         del config['__builtins__']
         return config
     except Exception as e:
-        print("Config Error: ", e)
+        log.error("Config Error: ", e)
+        exit(1)
 
 if __name__ == "__main__":
-    Simulation(get_config()).run()
+    MultipleSimulation(get_config()).run()
