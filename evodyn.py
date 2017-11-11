@@ -124,8 +124,8 @@ class Simulation:
         elif self.config['neighbor_type'] == 'von_neumann':
             return Neighbor.von_neumann(i, j, self.size, self.size)
         else:
-            raise SimulationException("Unknown 'neighbor_type' \
-            '%s'" % self.config['neighbor_type'])
+            raise SimulationException("Unknown neighbor_type" \
+            ": '%s'" % self.config['neighbor_type'])
 
     def plot_coop_levels(self):
         log.warning("Plot cooperation level in '%s'" % self.results_coop_fig())
@@ -218,12 +218,26 @@ class Simulation:
                 best_score = previous_score[ni, nj]
         return best_action
 
+    def play_replicator_rule(self, i, j):
+        # Following the same notation as the specifications
+        # TODO check that it is working as expected
+        neighbors = self.neighbors(i, j)
+        neighbor, N = random.choice(neighbors), len(neighbors)
+        maxpayoff = max(self.config['game']['payoff'])
+        minpayoff = min(self.config['game']['payoff'])
+        wi, wj = self.scores.previous()[i, j], self.scores.previous()[neighbor]
+        p = (1 + (wj - wi) / (N * (maxpayoff - minpayoff))) / 2
+        return np.random.choice([self.rounds.previous()[neighbor],
+                                 self.rounds.previous()[i, j]], p=[p, 1-p])
+
     def play_mechanism(self, i, j):
         if self.is_update_mechanism('unconditional_imitation'):
             return self.play_unconditional_imitation(i, j)
+        elif self.is_update_mechanism('replicator_rule'):
+            return self.play_replicator_rule(i, j)
         else:
-            raise SimulationException("Unknown update \
-            mechanism '%s'" % self.update_mechanism())
+            raise SimulationException("Unknown update " \
+            "mechanism: '%s'" % self.update_mechanism())
 
     def play(self, i, j):
         if self.t == 0:

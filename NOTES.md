@@ -18,3 +18,9 @@ In our implementation, a player keep his scores if it is the better from
 all of his neighbors
 
 Should previous_score[ni, nj] > best_score or >= ?
+
+# Part 2
+
+apparently Pij stabilized to 0.5, why ?
+
+coop in stab around 40%
