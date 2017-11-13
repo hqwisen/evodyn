@@ -102,6 +102,18 @@ class Lattice:
         self.l.append(matrix)
         return matrix
 
+    def reset_current(self):
+        """To avoid using too much memory, this method will:
+        - remove the previous matrix
+        - set the previous matrix as current,
+        - and current set to a new zeros matrix.
+        This should usually be used when only
+        two matrix remains in the lattice.
+        """
+        self.l[-2] = self.l[-1] # previous = current
+        self.l[-1] = np.zeros((self.size, self.size))
+        return self.current()
+
     def current(self):
         """Return (current) last matrix."""
         return self.l[-1]
@@ -126,14 +138,20 @@ class Simulation:
         self.config = config
         self.size = config['size']
         self.payoff = self.build_payoff()
-        self.rounds = Lattice(self.size)
-        self.scores = Lattice(self.size)
+        self.init_lattices()
         self._number_of_round = random.randint(self.config['last_round'][0],
                                                self.config['last_round'][1])
         self._results_dir = None
         self.t = 0
         self.coop_levels = []
         self.generate_results_dir()
+
+    def init_lattices(self):
+        self.rounds, self.scores = Lattice(self.size), Lattice(self.size)
+        # Create current and previous matrix,
+        #to be used with Lattice.reset_current()
+        self.rounds.add_matrix(); self.rounds.add_matrix()
+        self.scores.add_matrix(); self.scores.add_matrix()
 
     def build_payoff(self):
         TRPS = self.config['game']['payoff']
@@ -280,6 +298,9 @@ class Simulation:
         ncoop = self.rounds.current_counts(ACTIONS['C']['value'])
         return round((ncoop / self.npeople()) * 100, 2)
 
+    def gather_current_date(self):
+        self.coop_levels.append(self.current_coop_percentage())
+
     def _run_simulation(self):
         if self.config['time_visualize_all']:
             log.info("All rounds will be plotted")
@@ -287,8 +308,8 @@ class Simulation:
             self.t = t
             # FIXME is it necessary to create new matrix for every new round
             # FIXME to much memory used for this
-            current_score = self.scores.add_matrix()
-            current_round = self.rounds.add_matrix()
+            current_score = self.scores.reset_current()
+            current_round = self.rounds.reset_current()
             for i in range(self.size):
                 for j in range(self.size):
                     current_round[i, j] = self.play(i, j)
@@ -298,7 +319,7 @@ class Simulation:
             if self.config['time_visualize_all'] \
             or t in self.config['time_visualize']:
                 self.plot_current()
-            self.coop_levels.append(self.current_coop_percentage())
+            self.gather_current_date()
         self.plot_coop_levels()
         log.info("Simulation finished!")
 
