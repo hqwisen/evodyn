@@ -48,7 +48,17 @@ class EvoDynUtils:
             log.error("Config Error: ", e)
             exit(1)
 
-
+    @staticmethod
+    def plot(fig, data, axis, xlabel, ylabel, message = None):
+        if message is None:
+            message = "Plot x: %s; y:%s" %(xlabel, ylabel)
+        log.info("%s in '%s'" % (message, fig))
+        plt.axis(axis)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.plot(data)
+        plt.savefig(fig, bbox_inches='tight')
+        plt.close()
 
 class Neighbor:
 
@@ -141,15 +151,19 @@ class Simulation:
                                                self.config['last_round'][1])
         self._results_dir = None
         self.t = 0
-        self.data = self.init_data()
+        self._data = self.init_data()
         self.rounds, self.scores = self.init_lattices()
         self.payoff = self.build_payoff()
         self.generate_results_dir()
+
+    def data(self, key = None):
+        return self._data if key is None else self._data[key]
 
     def init_data(self):
         return {
             'coop_levels': list()
         }
+
     def init_lattices(self):
         rounds, scores = Lattice(self.size), Lattice(self.size)
         # Create current and previous matrix,
@@ -174,14 +188,11 @@ class Simulation:
             ": '%s'" % self.config['neighbor_type'])
 
     def plot_coop_levels(self):
-        log.info("Plot cooperation level in '%s'" % self.results_coop_fig())
-        plt.axis([0, self.nround() - 1, 0, 100])
-        plt.ylabel('Cooperation level in %')
-        plt.xlabel('Rounds')
-        plt.plot(self.data['coop_levels'])
-        plt.savefig(self.results_coop_fig(), bbox_inches='tight')
-        plt.close()
-
+        message = "Plot cooperation level"
+        axis = [0, self.nround() - 1, 0, 100]
+        xlabel, ylabel = 'Rounds', 'Cooperation level in %'
+        EvoDynUtils.plot(self.results_coop_fig(), self.data('coop_levels'),
+                         axis, xlabel, ylabel, message)
 
     def plot_current(self):
         """Plot the self.rounds.current() matrix."""
@@ -304,7 +315,7 @@ class Simulation:
         return round((ncoop / self.npeople()) * 100, 2)
 
     def gather_current_data(self):
-        self.data['coop_levels'].append(self.current_coop_percentage())
+        self._data['coop_levels'].append(self.current_coop_percentage())
 
     def _run_simulation(self):
         if self.config['time_visualize_all']:
@@ -337,7 +348,7 @@ class MultipleSimulation:
 
     def __init__(self, config):
         self.config = config
-
+        self.all_data = []
 
     def results_dir(self):
         return self.config['results_dir']
@@ -354,14 +365,22 @@ class MultipleSimulation:
                 exit(1)
         EvoDynUtils.mkdir(self.results_dir())
 
+    def plot_average_coop_levels(self):
+        pass
+
+    def _run_simu(self, simuid):
+        print()
+        log.info('Running simluation #%d' % simuid)
+        simu = Simulation(self.config, simuid)
+        simu.run()
+        self.all_data.append(simu.data())
+
     def run(self):
         self.create_results_dir()
         start_time = time.time()
         nsimul = self.config['number_of_simulations']
         for simuid in range(nsimul):
-            print()
-            log.info('Running simluation #%d' % simuid)
-            Simulation(self.config, simuid).run()
+            self._run_simu(simuid)
         print()
         log.info("%d simulations in %d seconds"
                  % (nsimul, time.time() - start_time))
