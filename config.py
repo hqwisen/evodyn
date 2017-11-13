@@ -65,4 +65,4 @@ show_axis = True
 results_dir = "results"
 # If set to True and a directory named 'results_dir' exists,
 # it will be removed, the program stops otherwise
-results_dir_rm = False
+results_dir_rm = True

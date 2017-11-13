@@ -12,9 +12,6 @@ import shutil
 log = logging.getLogger('EvoDyn')
 logging.basicConfig(level = logging.DEBUG)
 
-class SimulationException(Exception):
-    pass
-
 ACTIONS = {
     'C' : {
         'name': 'cooperate',
@@ -28,6 +25,30 @@ ACTIONS = {
         'value' : 1
     }
 }
+
+class SimulationException(Exception):
+    pass
+
+class EvoDynUtils:
+
+    @staticmethod
+    def mkdir(directory):
+        log.info("Creating new '%s' directory" % directory)
+        os.mkdir(directory)
+
+    @staticmethod
+    def get_config():
+        try:
+            config = {}
+            exec(open("config.py").read(), config)
+            # FIXME find another way to parse to avoid del builtins
+            del config['__builtins__']
+            return config
+        except Exception as e:
+            log.error("Config Error: ", e)
+            exit(1)
+
+
 
 class Neighbor:
 
@@ -169,29 +190,20 @@ class Simulation:
         return self._number_of_round
 
     def generate_results_dir(self):
+        """
+        Generate the directory name used to store the simulations results.
+        If self.simuid is None, the directory will be generated with a
+        timestamp.
+        """
         self._results_dir = os.path.join(self.config['results_dir'], 'simu_')
         if self.simuid is None:
             self._results_dir +=  time.strftime('%H:%M:%S')
         else:
             self._results_dir += str(self.simuid)
-        self.create_results_dir()
+        EvoDynUtils.mkdir(self.results_dir())
 
     def results_dir(self):
         return self._results_dir
-
-    def create_results_dir(self):
-        if os.path.exists(self.results_dir()):
-            if self.config['results_dir_rm']:
-                log.warning("Removing existing directory '%s'"
-                % self.results_dir())
-                shutil.rmtree(self.results_dir())
-            else:
-                log.error("Abort. Results directory '" + self.results_dir() +
-                "' already exists.")
-                exit(1)
-        log.warning("Creating new '%s' directory" % self.results_dir())
-        os.mkdir(self.results_dir())
-
 
     def results_fig(self):
         return os.path.join(self.results_dir(), 't' + str(self.t))
@@ -316,8 +328,7 @@ class MultipleSimulation:
                 log.error("Abort. Results directory '" + self.results_dir() +
                 "' already exists.")
                 exit(1)
-        log.warning("Creating new '%s' directory" % self.results_dir())
-        os.mkdir(self.results_dir())
+        EvoDynUtils.mkdir(self.results_dir())
 
     def run(self):
         self.create_results_dir()
@@ -331,18 +342,5 @@ class MultipleSimulation:
         log.info("%d simulations in %d seconds"
                  % (nsimul, time.time() - start_time))
 
-
-
-def get_config():
-    try:
-        config = {}
-        exec(open("config.py").read(), config)
-        # FIXME find another way to parse to avoid del builtins
-        del config['__builtins__']
-        return config
-    except Exception as e:
-        log.error("Config Error: ", e)
-        exit(1)
-
 if __name__ == "__main__":
-    MultipleSimulation(get_config()).run()
+    MultipleSimulation(EvoDynUtils.get_config()).run()
