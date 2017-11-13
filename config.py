@@ -61,5 +61,8 @@ show_axis = True
 
 ### EvoDyn configuration ###
 
-# If True: results directory that already exists is removed, program stop
-results_dir_rm = True
+# Directory name where the simulations plots will be stored
+results_dir = "results"
+# If set to True and a directory named 'results_dir' exists,
+# it will be removed, the program stops otherwise
+results_dir_rm = False

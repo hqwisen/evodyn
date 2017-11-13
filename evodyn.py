@@ -1,7 +1,7 @@
 #!/bin/python3
 
 import numpy as np
-import matplotlib.pyplot as plot
+import matplotlib.pyplot as plt
 import matplotlib as mpl
 import random
 import os
@@ -100,7 +100,8 @@ class Lattice:
 
 class Simulation:
 
-    def __init__(self, config):
+    def __init__(self, config, simuid = None):
+        self.simuid = simuid
         self.config = config
         self.size = config['size']
         self.payoff = self.build_payoff()
@@ -130,12 +131,12 @@ class Simulation:
 
     def plot_coop_levels(self):
         log.info("Plot cooperation level in '%s'" % self.results_coop_fig())
-        plot.axis([0, self.nround() - 1, 0, 100])
-        plot.ylabel('Cooperation level in %')
-        plot.xlabel('Rounds')
-        plot.plot(self.coop_levels)
-        plot.savefig(self.results_coop_fig(), bbox_inches='tight')
-        plot.close()
+        plt.axis([0, self.nround() - 1, 0, 100])
+        plt.ylabel('Cooperation level in %')
+        plt.xlabel('Rounds')
+        plt.plot(self.coop_levels)
+        plt.savefig(self.results_coop_fig(), bbox_inches='tight')
+        plt.close()
 
 
     def plot_current(self):
@@ -145,13 +146,13 @@ class Simulation:
         levels = [0, 1, 2]
         colors = [ACTIONS['C']['color'], ACTIONS['D']['color']]
         cmap, norm = mpl.colors.from_levels_and_colors(levels, colors)
-        fig = plot.matshow(self.rounds.current(), cmap=cmap, norm=norm)
+        fig = plt.matshow(self.rounds.current(), cmap=cmap, norm=norm)
         if not self.config['show_axis']:
             fig.axes.get_xaxis().set_visible(False)
             fig.axes.get_yaxis().set_visible(False)
-            plot.axis('off')
+            plt.axis('off')
         if self.config['show_color_bar']:
-            plot.colorbar()
+            plt.colorbar()
         if self.config['time_visualize_all']:
             # print replacing to avoid too much output
             print("\rPlot t{0} {1} ( coop {2}% )".format(self.t,
@@ -159,8 +160,8 @@ class Simulation:
             if self.t == self.nround() - 1: print()
         else:
             log.debug("Plot t%d in '%s'" % (self.t,self.results_fig()))
-        plot.savefig(self.results_fig(), bbox_inches='tight')
-        plot.close()
+        plt.savefig(self.results_fig(), bbox_inches='tight')
+        plt.close()
 
     def nround(self):
         """Return the number of rounds played.
@@ -168,26 +169,29 @@ class Simulation:
         return self._number_of_round
 
     def generate_results_dir(self):
-        # TODO in production use with time
-        # self._results_dir = 'results_' + time.strftime('%H:%M:%S')
-        self._results_dir = 'results'
+        self._results_dir = os.path.join(self.config['results_dir'], 'simu_')
+        if self.simuid is None:
+            self._results_dir +=  time.strftime('%H:%M:%S')
+        else:
+            self._results_dir += str(self.simuid)
         self.create_results_dir()
 
     def results_dir(self):
         return self._results_dir
 
     def create_results_dir(self):
-        if self.config['results_dir_rm']:
-            if os.path.exists(self.results_dir()):
+        if os.path.exists(self.results_dir()):
+            if self.config['results_dir_rm']:
                 log.warning("Removing existing directory '%s'"
-                 % self.results_dir())
+                % self.results_dir())
                 shutil.rmtree(self.results_dir())
-            log.warning("Creating new '%s' directory" % self.results_dir())
-            os.mkdir(self.results_dir())
-        else:
-            log.error("Abort. Results directory '" + self.results_dir() +
-            "' already exists.")
-            exit(1)
+            else:
+                log.error("Abort. Results directory '" + self.results_dir() +
+                "' already exists.")
+                exit(1)
+        log.warning("Creating new '%s' directory" % self.results_dir())
+        os.mkdir(self.results_dir())
+
 
     def results_fig(self):
         return os.path.join(self.results_dir(), 't' + str(self.t))
@@ -298,13 +302,31 @@ class MultipleSimulation:
     def __init__(self, config):
         self.config = config
 
+
+    def results_dir(self):
+        return self.config['results_dir']
+
+    def create_results_dir(self):
+        if os.path.exists(self.results_dir()):
+            if self.config['results_dir_rm']:
+                log.warning("Removing existing directory '%s'"
+                % self.results_dir())
+                shutil.rmtree(self.results_dir())
+            else:
+                log.error("Abort. Results directory '" + self.results_dir() +
+                "' already exists.")
+                exit(1)
+        log.warning("Creating new '%s' directory" % self.results_dir())
+        os.mkdir(self.results_dir())
+
     def run(self):
+        self.create_results_dir()
         start_time = time.time()
         nsimul = self.config['number_of_simulations']
-        for i in range(nsimul):
+        for simuid in range(nsimul):
             print()
-            log.info('Running simluation #%d' % i)
-            Simulation(self.config).run()
+            log.info('Running simluation #%d' % simuid)
+            Simulation(self.config, simuid).run()
         print()
         log.info("%d simulations in %d seconds"
                  % (nsimul, time.time() - start_time))
