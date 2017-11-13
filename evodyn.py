@@ -358,6 +358,9 @@ class MultipleSimulation:
     def results_dir(self):
         return self.config['results_dir']
 
+    def results_coop_fig(self):
+        return os.path.join(self.results_dir(), 'average_coop')
+
     def create_results_dir(self):
         if os.path.exists(self.results_dir()):
             if self.config['results_dir_rm']:
@@ -371,9 +374,20 @@ class MultipleSimulation:
         EvoDynUtils.mkdir(self.results_dir())
 
     def plot_average_coop_levels(self):
-        average_coop_levels = []
-        for i in range(self.nsimul):
-            self.all_data[i]['coop_levels']
+        nround = self.config['number_of_round']
+        average_coop_levels = [0 for r in range(nround)]
+        for s in range(self.nsimul):
+            for r in range(nround):
+                average_coop_levels[r] += self.all_data[s]['coop_levels'][r]
+        for r in range(nround):
+            average_coop_levels[r] = average_coop_levels[r] / self.nsimul
+        message = "Plot average cooperation levels for %s simulations" \
+                  % (self.nsimul)
+        xlabel, ylabel = "Rounds", "Average coop. level for %s simulations" \
+                                    % (self.nsimul)
+        axis = [0, nround - 1, 0, 100]
+        EvoDynUtils.plot(self.results_coop_fig(), average_coop_levels,
+                 axis, xlabel, ylabel, message)
 
     def _run_simu(self, simuid):
         print()
@@ -387,6 +401,7 @@ class MultipleSimulation:
         start_time = time.time()
         for simuid in range(self.nsimul):
             self._run_simu(simuid)
+        self.plot_average_coop_levels()
         print()
         log.info("%d simulations in %d seconds"
                  % (self.nsimul, time.time() - start_time))

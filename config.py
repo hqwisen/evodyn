@@ -35,16 +35,17 @@ snowdrift_game = {
 
 ### Simulation configuation ###
 
-number_of_simulations = 2
+number_of_simulations = 5
 
 ### Game configuration ###
 
+# Matrix sizexsize
 size = 50
 # Last round is generated randomly between the specified values.
 # To have a fix number of rounds put the same value.
 # Make sure that the first value is smaller than the second value.
 # The numbe of round is the same for all the simulations of the same run.
-last_round = (1, 10)
+last_round = (50, 100)
 # See defined games above
 game = prisoners_dilemma
 # start_defect_probability = 1 - start_coop_probability
@@ -58,7 +59,7 @@ update_mechanism = 'unconditional_imitation'
 
 # If False, show only time_visualize steps
 # Note that more you plot, more it takes time!
-time_visualize_all = True
+time_visualize_all = False
 # First t is t0
 time_visualize = (0, 10, 50)
 show_color_bar = False
