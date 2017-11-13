@@ -147,8 +147,6 @@ class Simulation:
         self.simuid = simuid
         self.config = config
         self.size = self.config['size']
-        self._number_of_round = random.randint(self.config['last_round'][0],
-                                               self.config['last_round'][1])
         self._results_dir = None
         self.t = 0
         self._data = self.init_data()
@@ -221,7 +219,7 @@ class Simulation:
     def nround(self):
         """Return the number of rounds played.
         Based on config.last_round scale."""
-        return self._number_of_round
+        return self.config['number_of_round']
 
     def generate_results_dir(self):
         """
@@ -348,7 +346,14 @@ class MultipleSimulation:
 
     def __init__(self, config):
         self.config = config
+        self.nsimul = self.config['number_of_simulations']
         self.all_data = []
+        self.generate_number_of_round()
+
+    def generate_number_of_round(self):
+        self.config['number_of_round']= random.randint(
+                                            self.config['last_round'][0],
+                                            self.config['last_round'][1])
 
     def results_dir(self):
         return self.config['results_dir']
@@ -366,7 +371,9 @@ class MultipleSimulation:
         EvoDynUtils.mkdir(self.results_dir())
 
     def plot_average_coop_levels(self):
-        pass
+        average_coop_levels = []
+        for i in range(self.nsimul):
+            self.all_data[i]['coop_levels']
 
     def _run_simu(self, simuid):
         print()
@@ -378,12 +385,11 @@ class MultipleSimulation:
     def run(self):
         self.create_results_dir()
         start_time = time.time()
-        nsimul = self.config['number_of_simulations']
-        for simuid in range(nsimul):
+        for simuid in range(self.nsimul):
             self._run_simu(simuid)
         print()
         log.info("%d simulations in %d seconds"
-                 % (nsimul, time.time() - start_time))
+                 % (self.nsimul, time.time() - start_time))
 
 if __name__ == "__main__":
     MultipleSimulation(EvoDynUtils.get_config()).run()
