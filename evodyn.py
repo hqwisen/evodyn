@@ -306,8 +306,6 @@ class Simulation:
             log.info("All rounds will be plotted")
         for t in range(self.nround()):
             self.t = t
-            # FIXME is it necessary to create new matrix for every new round
-            # FIXME to much memory used for this
             current_score = self.scores.reset_current()
             current_round = self.rounds.reset_current()
             for i in range(self.size):
