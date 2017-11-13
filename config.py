@@ -35,14 +35,14 @@ snowdrift_game = {
 
 ### Simulation configuation ###
 
-number_of_simulations = 4
+number_of_simulations = 2
 
 ### Game configuration ###
 
-size = 50
+size = 5
 # Last round is generated randomly between the specified values.
 # To have a fix number of rounds put the same value.
-last_round = (100, 100)
+last_round = (2, 2)
 # See defined games above
 game = prisoners_dilemma
 # start_defect_probability = 1 - start_coop_probability

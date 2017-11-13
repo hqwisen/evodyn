@@ -136,22 +136,27 @@ class Simulation:
     def __init__(self, config, simuid = None):
         self.simuid = simuid
         self.config = config
-        self.size = config['size']
-        self.payoff = self.build_payoff()
-        self.init_lattices()
+        self.size = self.config['size']
         self._number_of_round = random.randint(self.config['last_round'][0],
                                                self.config['last_round'][1])
         self._results_dir = None
         self.t = 0
-        self.coop_levels = []
+        self.data = self.init_data()
+        self.rounds, self.scores = self.init_lattices()
+        self.payoff = self.build_payoff()
         self.generate_results_dir()
 
+    def init_data(self):
+        return {
+            'coop_levels': list()
+        }
     def init_lattices(self):
-        self.rounds, self.scores = Lattice(self.size), Lattice(self.size)
+        rounds, scores = Lattice(self.size), Lattice(self.size)
         # Create current and previous matrix,
         #to be used with Lattice.reset_current()
-        self.rounds.add_matrix(); self.rounds.add_matrix()
-        self.scores.add_matrix(); self.scores.add_matrix()
+        rounds.add_matrix(); rounds.add_matrix()
+        scores.add_matrix(); scores.add_matrix()
+        return rounds, scores
 
     def build_payoff(self):
         TRPS = self.config['game']['payoff']
@@ -173,7 +178,7 @@ class Simulation:
         plt.axis([0, self.nround() - 1, 0, 100])
         plt.ylabel('Cooperation level in %')
         plt.xlabel('Rounds')
-        plt.plot(self.coop_levels)
+        plt.plot(self.data['coop_levels'])
         plt.savefig(self.results_coop_fig(), bbox_inches='tight')
         plt.close()
 
@@ -298,8 +303,8 @@ class Simulation:
         ncoop = self.rounds.current_counts(ACTIONS['C']['value'])
         return round((ncoop / self.npeople()) * 100, 2)
 
-    def gather_current_date(self):
-        self.coop_levels.append(self.current_coop_percentage())
+    def gather_current_data(self):
+        self.data['coop_levels'].append(self.current_coop_percentage())
 
     def _run_simulation(self):
         if self.config['time_visualize_all']:
@@ -317,7 +322,7 @@ class Simulation:
             if self.config['time_visualize_all'] \
             or t in self.config['time_visualize']:
                 self.plot_current()
-            self.gather_current_date()
+            self.gather_current_data()
         self.plot_coop_levels()
         log.info("Simulation finished!")
 
