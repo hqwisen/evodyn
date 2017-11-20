@@ -4,15 +4,14 @@ Project 2 of Learning Dynamics course
 
 # Dependencies
 
+```
+pip install -r requirements.txt
+```
 
-## Pip
+# HowTo
 
-* numpy
-* matplotlib
+Set up a **config.py** file based on **sample.py**.
 
-## Pacman
-
-### Needed for mathplotlib.show()
-
-* tk
-* python-pyqt*
+```
+python3 evodyn.py
+```
