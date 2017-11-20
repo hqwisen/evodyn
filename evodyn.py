@@ -9,6 +9,9 @@ import time
 import logging
 import shutil
 
+# Specify backend, to allow usage from terminal
+plt.switch_backend('agg')
+# Logger
 log = logging.getLogger('EvoDyn')
 logging.basicConfig(level = logging.DEBUG)
 
