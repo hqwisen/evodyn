@@ -7,6 +7,9 @@ Project 2 of Learning Dynamics course
 ```
 pip install -r requirements.txt
 ```
+```
+pacman -S tk
+```
 
 # HowTo
 
