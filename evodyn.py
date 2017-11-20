@@ -44,6 +44,9 @@ class EvoDynUtils:
             # FIXME find another way to parse to avoid del builtins
             del config['__builtins__']
             return config
+        except FileNotFoundError:
+            print("Error: no 'config.py' file found.")
+            exit(1)
         except Exception as e:
             log.error("Config Error: ", e)
             exit(1)
