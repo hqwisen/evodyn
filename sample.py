@@ -17,6 +17,10 @@ prisoners_dilemma = {
     'name':  'weak prisoner', # prisoner, snowdrift
     'payoff': (10, 7, 0, 0) # (T, R, P, S)
 }
+strong_prisoners_dilemma = {
+    'name': 'prisoners dilemma',
+    'payoff': (10, 7, 5, 0)
+}
 
 ### Snowdrift Game
 #     C  |  D
@@ -47,9 +51,9 @@ size = 50
 # The numbe of round is the same for all the simulations of the same run.
 last_round = (100, 100)
 # See defined games above
-game = prisoners_dilemma 
+game = strong_prisoners_dilemma 
 # Start method: 'probability', 'middle_cluster'
-start_method = 'middle_cluster'
+start_method = 'probability'
 # Middle cluster action: C or D
 middle_cluster_action = 'C'
 # Middle cluster size
