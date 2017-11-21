@@ -66,6 +66,11 @@ class EvoDynUtils:
         plt.savefig(fig, bbox_inches='tight')
         plt.close()
 
+    def opposite_action(action):
+        if action == 'D':
+            return 'C'
+        elif action == 'C':
+            return 'D'
 class Neighbor:
 
     @staticmethod
@@ -294,9 +299,28 @@ class Simulation:
             raise SimulationException("Unknown update " \
             "mechanism: '%s'" % self.update_mechanism())
 
+    def play_middle_cluster(self, i, j):
+        action = self.config['middle_cluster_action']
+        oppaction = EvoDynUtils.opposite_action(action)
+        cluster_size = self.config['middle_cluster_size']
+        center = self.size // 2
+        cluster = range(center - cluster_size, center + cluster_size)
+        if i in cluster and j in cluster:
+            return ACTIONS[action]['value']
+        return ACTIONS[oppaction]['value']
+
+    def play_first(self, i, j):
+        if self.config['start_method'] == 'probability':
+            return self.play_random()
+        elif self.config['start_method'] == 'middle_cluster':
+            return self.play_middle_cluster(i, j)
+        else:
+            raise SimulationException("Unknown start " \
+            "method: '%s'" % self.config['start_method'])
+
     def play(self, i, j):
         if self.t == 0:
-            return self.play_random()
+            return self.play_first(i, j)
         else:
             return self.play_mechanism(i, j)
 

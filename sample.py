@@ -35,7 +35,7 @@ snowdrift_game = {
 
 ### Simulation configuation ###
 
-number_of_simulations = 100
+number_of_simulations = 1 
 
 ### Game configuration ###
 
@@ -48,6 +48,12 @@ size = 50
 last_round = (100, 100)
 # See defined games above
 game = prisoners_dilemma 
+# Start method: 'probability', 'middle_cluster'
+start_method = 'middle_cluster'
+# Middle cluster action: C or D
+middle_cluster_action = 'C'
+# Middle cluster size
+middle_cluster_size = 5
 # start_defect_probability = 1 - start_coop_probability
 start_coop_probability = 0.5
 # Accepted values: 'moore', 'von_neumann'
@@ -59,7 +65,7 @@ update_mechanism = 'unconditional_imitation'
 
 # If False, show only time_visualize steps
 # Note that more you plot, more it takes time!
-time_visualize_all = False
+time_visualize_all = True 
 # First t is t0
 time_visualize = (1, 5, 10, 20, 50)
 show_color_bar = False
