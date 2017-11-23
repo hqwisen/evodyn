@@ -260,11 +260,14 @@ class Simulation:
     def update_mechanism(self):
         return self.config['update_mechanism']
 
-    def play_random(self):
+    def play_random(self, return_action=False):
         """Play cooperate or defect based on config.start_coop_probability."""
         coop_prob = self.config['start_coop_probability']
         choice = np.random.choice(['C', 'D'], p=[coop_prob, 1 - coop_prob])
-        return ACTIONS[choice]['value']
+        if return_action:
+            return choice
+        else:
+            return ACTIONS[choice]['value']
 
     def play_unconditional_imitation(self, i, j):
         previous_score = self.scores.previous()
@@ -298,10 +301,14 @@ class Simulation:
         else:
             raise SimulationException("Unknown update " \
             "mechanism: '%s'" % self.update_mechanism())
-
+    
     def play_middle_cluster(self, i, j):
-        action = self.config['middle_cluster_action']
-        oppaction = EvoDynUtils.opposite_action(action)
+        cluster_action = self.config['middle_cluster_action']
+        if self.config['random_cluster']:
+            action = self.play_random(return_action=True)
+        else:
+            action = cluster_action
+        oppaction = EvoDynUtils.opposite_action(cluster_action)
         cluster_size = self.config['middle_cluster_size']
         center = self.size // 2
         cluster = range(center - cluster_size, center + cluster_size)

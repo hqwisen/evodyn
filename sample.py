@@ -56,6 +56,9 @@ game = strong_prisoners_dilemma
 start_method = 'probability'
 # Middle cluster action: C or D
 middle_cluster_action = 'C'
+# If random_cluster is set to True, the cluster player plays random in t0
+# middle_cluster_action is still used for non-cluster player (opposite action)
+random_cluster = True
 # Middle cluster size
 middle_cluster_size = 5
 # start_defect_probability = 1 - start_coop_probability
