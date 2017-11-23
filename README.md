@@ -1,6 +1,8 @@
 # evodyn
 
-Project 2 of Learning Dynamics course
+Script used for Project 2 of Learning Dynamics course:
+
+*Evolutionary dynamics in a spatial context*
 
 # Dependencies
 
