@@ -13,24 +13,26 @@ import shutil
 plt.switch_backend('agg')
 # Logger
 log = logging.getLogger('EvoDyn')
-logging.basicConfig(level = logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 ACTIONS = {
-    'C' : {
+    'C': {
         'name': 'cooperate',
         'color': 'blue',
         'value': 0
 
     },
-    'D' : {
-        'name' : 'defect',
-        'color' : 'red',
-        'value' : 1
+    'D': {
+        'name': 'defect',
+        'color': 'red',
+        'value': 1
     }
 }
 
+
 class SimulationException(Exception):
     pass
+
 
 class EvoDynUtils:
 
@@ -43,7 +45,7 @@ class EvoDynUtils:
     def get_config():
         try:
             config = {}
-            exec(open("config.py").read(), config)
+            exec(open("sample.py").read(), config)
             # FIXME find another way to parse to avoid del builtins
             del config['__builtins__']
             return config
@@ -55,9 +57,9 @@ class EvoDynUtils:
             exit(1)
 
     @staticmethod
-    def plot(fig, data, axis, xlabel, ylabel, message = None):
+    def plot(fig, data, axis, xlabel, ylabel, message=None):
         if message is None:
-            message = "Plot x: %s; y:%s" %(xlabel, ylabel)
+            message = "Plot x: %s; y:%s" % (xlabel, ylabel)
         log.info("%s in '%s'" % (message, fig))
         plt.axis(axis)
         plt.xlabel(xlabel)
@@ -71,6 +73,8 @@ class EvoDynUtils:
             return 'C'
         elif action == 'C':
             return 'D'
+
+
 class Neighbor:
 
     @staticmethod
@@ -98,16 +102,16 @@ class Neighbor:
     @staticmethod
     def moore(r, c, nrows, ncols):
         up, down, left, right = Neighbor.alldirections(r, c, nrows, ncols)
-        return  (up, left), (up, c), (up, right), \
-                (r, left), (r, right), \
-                (down, left), (down, c), (down, right)
+        return (up, left), (up, c), (up, right), \
+               (r, left), (r, right), \
+               (down, left), (down, c), (down, right)
 
     @staticmethod
     def von_neumann(r, c, nrows, ncols):
         up, down, left, right = Neighbor.alldirections(r, c, nrows, ncols)
-        return  (up, c), \
-                (r, left), (r, right), \
-                (down, c)
+        return (up, c), \
+               (r, left), (r, right), \
+               (down, c)
 
 
 class Lattice:
@@ -131,7 +135,7 @@ class Lattice:
         This should usually be used when only
         two matrix remains in the lattice.
         """
-        self.l[-2] = self.l[-1] # previous = current
+        self.l[-2] = self.l[-1]  # previous = current
         self.l[-1] = np.zeros((self.size, self.size))
         return self.current()
 
@@ -150,11 +154,12 @@ class Lattice:
         return str(self.l)
 
     def __repr__(self):
-        return str(__self__)
+        return str(self)
+
 
 class Simulation:
 
-    def __init__(self, config, simuid = None):
+    def __init__(self, config, simuid=None):
         self.simuid = simuid
         self.config = config
         self.size = self.config['size']
@@ -162,10 +167,9 @@ class Simulation:
         self.t = 0
         self._data = self.init_data()
         self.rounds, self.scores = self.init_lattices()
-        self.payoff = self.build_payoff()
         self.generate_results_dir()
 
-    def data(self, key = None):
+    def data(self, key=None):
         return self._data if key is None else self._data[key]
 
     def init_data(self):
@@ -176,16 +180,33 @@ class Simulation:
     def init_lattices(self):
         rounds, scores = Lattice(self.size), Lattice(self.size)
         # Create current and previous matrix,
-        #to be used with Lattice.reset_current()
-        rounds.add_matrix(); rounds.add_matrix()
-        scores.add_matrix(); scores.add_matrix()
+        # to be used with Lattice.reset_current()
+        rounds.add_matrix()
+        rounds.add_matrix()
+        scores.add_matrix()
+        scores.add_matrix()
         return rounds, scores
 
     def build_payoff(self):
-        TRPS = self.config['game']['payoff']
-        C, D = ACTIONS['C']['value'], ACTIONS['D']['value']
-        return {C: {C: TRPS[1], D: TRPS[3]}, \
-                D: {C: TRPS[0], D: TRPS[2]}}
+        if self.config['simulation_type'] == 'assign2':
+            TRPS = self.config['game']['payoff']
+            C, D = ACTIONS['C']['value'], ACTIONS['D']['value']
+            return {C: {C: TRPS[1], D: TRPS[3]},
+                    D: {C: TRPS[0], D: TRPS[2]},
+                    'name': self.config['game']['name']}
+        elif self.config['simulation_type'] == 'gamma':
+            gamma_p = self.config['gamma_p']
+            choice = np.random.choice([0, 1], p=[1 - gamma_p, gamma_p])
+            game = self.config['gamma'][choice]
+            TRPS = game['payoff']
+            C, D = ACTIONS['C']['value'], ACTIONS['D']['value']
+            return {C: {C: TRPS[1], D: TRPS[3]},
+                    D: {C: TRPS[0], D: TRPS[2]},
+                    'name': game['name']}
+        else:
+            raise SimulationException("Cannot build payoff "
+                                      "for simulation_type %s" %
+                                      self.config['simulation_type'])
 
     def neighbors(self, i, j):
         if self.config['neighbor_type'] == 'moore':
@@ -194,7 +215,7 @@ class Simulation:
             return Neighbor.von_neumann(i, j, self.size, self.size)
         else:
             raise SimulationException("Unknown neighbor_type" \
-            ": '%s'" % self.config['neighbor_type'])
+                                      ": '%s'" % self.config['neighbor_type'])
 
     def plot_coop_levels(self):
         message = "Plot cooperation level"
@@ -220,10 +241,11 @@ class Simulation:
         if self.config['time_visualize_all']:
             # print replacing to avoid too much output
             print("\rPlot t{0} {1} ( coop {2}% )".format(self.t,
-                self.results_fig(), self.current_coop_percentage()),end=' ')
+                                                         self.results_fig(),
+                                                         self.current_coop_percentage()), end=' ')
             if self.t == self.nround() - 1: print()
         else:
-            log.debug("Plot t%d in '%s'" % (self.t,self.results_fig()))
+            log.debug("Plot t%d in '%s'" % (self.t, self.results_fig()))
         plt.savefig(self.results_fig(), bbox_inches='tight')
         plt.close()
 
@@ -240,7 +262,7 @@ class Simulation:
         """
         self._results_dir = os.path.join(self.config['results_dir'], 'simu_')
         if self.simuid is None:
-            self._results_dir +=  time.strftime('%H:%M:%S')
+            self._results_dir += time.strftime('%H:%M:%S')
         else:
             self._results_dir += str(self.simuid)
         EvoDynUtils.mkdir(self.results_dir())
@@ -291,7 +313,7 @@ class Simulation:
         wi, wj = self.scores.previous()[i, j], self.scores.previous()[neighbor]
         p = (1 + (wj - wi) / (N * (maxpayoff - minpayoff))) / 2
         return np.random.choice([self.rounds.previous()[neighbor],
-                                 self.rounds.previous()[i, j]], p=[p, 1-p])
+                                 self.rounds.previous()[i, j]], p=[p, 1 - p])
 
     def play_mechanism(self, i, j):
         if self.is_update_mechanism('unconditional_imitation'):
@@ -300,8 +322,8 @@ class Simulation:
             return self.play_replicator_rule(i, j)
         else:
             raise SimulationException("Unknown update " \
-            "mechanism: '%s'" % self.update_mechanism())
-    
+                                      "mechanism: '%s'" % self.update_mechanism())
+
     def play_middle_cluster(self, i, j):
         cluster_action = self.config['middle_cluster_action']
         if self.config['random_cluster']:
@@ -323,11 +345,16 @@ class Simulation:
             return self.play_middle_cluster(i, j)
         else:
             raise SimulationException("Unknown start " \
-            "method: '%s'" % self.config['start_method'])
+                                      "method: '%s'" % self.config['start_method'])
+
+    def play_gamma(self, i, j):
+        return None
 
     def play(self, i, j):
         if self.t == 0:
             return self.play_first(i, j)
+        elif self.config['simulation_type'] == 'gamma':
+            return self.play_gamma(i, j)
         else:
             return self.play_mechanism(i, j)
 
@@ -352,7 +379,9 @@ class Simulation:
     def gather_current_data(self):
         self._data['coop_levels'].append(self.current_coop_percentage())
 
-    def _run_simulation(self):
+    def _run_simulation_assign2(self):
+        log.info("Starting 'assign2' simulation")
+        self.payoff = self.build_payoff()
         if self.config['time_visualize_all']:
             log.info("All rounds will be plotted")
         for t in range(self.nround()):
@@ -366,7 +395,30 @@ class Simulation:
                 for j in range(self.size):
                     current_score[i, j] = self.calculate_score(i, j)
             if self.config['time_visualize_all'] \
-            or t in self.config['time_visualize']:
+                    or t in self.config['time_visualize']:
+                self.plot_current()
+            self.gather_current_data()
+        self.plot_coop_levels()
+        log.info("Simulation finished!")
+
+    def _run_simulation_gamma(self):
+        log.info("Starting 'gamma' simulation")
+        if self.config['time_visualize_all']:
+            log.info("All rounds will be plotted")
+        for t in range(self.nround()):
+            self.payoff = self.build_payoff()
+            log.info("Game for round %d: %s" % (t, self.payoff['name']))
+            self.t = t
+            current_score = self.scores.reset_current()
+            current_round = self.rounds.reset_current()
+            for i in range(self.size):
+                for j in range(self.size):
+                    current_round[i, j] = self.play(i, j)
+            for i in range(self.size):
+                for j in range(self.size):
+                    current_score[i, j] = self.calculate_score(i, j)
+            if self.config['time_visualize_all'] \
+                    or t in self.config['time_visualize']:
                 self.plot_current()
             self.gather_current_data()
         self.plot_coop_levels()
@@ -374,10 +426,18 @@ class Simulation:
 
     def run(self):
         try:
-            self._run_simulation()
+            runs = {
+                'gamma': getattr(self, '_run_simulation_gamma'),
+                'assign2': getattr(self, '_run_simulation_assign2')
+            }
+            if self.config['simulation_type'] not in runs:
+                raise SimulationException("Unknown simulation type %s" %
+                                          self.config['simulation_type'])
+            runs[self.config['simulation_type']]()
         except KeyboardInterrupt:
             log.error("Simulation interupted.")
             exit(130)
+
 
 class MultipleSimulation:
 
@@ -388,9 +448,9 @@ class MultipleSimulation:
         self.generate_number_of_round()
 
     def generate_number_of_round(self):
-        self.config['number_of_round']= random.randint(
-                                            self.config['last_round'][0],
-                                            self.config['last_round'][1])
+        self.config['number_of_round'] = random.randint(
+            self.config['last_round'][0],
+            self.config['last_round'][1])
 
     def results_dir(self):
         return self.config['results_dir']
@@ -402,11 +462,11 @@ class MultipleSimulation:
         if os.path.exists(self.results_dir()):
             if self.config['results_dir_rm']:
                 log.warning("Removing existing directory '%s'"
-                % self.results_dir())
+                            % self.results_dir())
                 shutil.rmtree(self.results_dir())
             else:
                 log.error("Abort. Results directory '" + self.results_dir() +
-                "' already exists.")
+                          "' already exists.")
                 exit(1)
         EvoDynUtils.mkdir(self.results_dir())
 
@@ -421,10 +481,10 @@ class MultipleSimulation:
         message = "Plot average cooperation levels for %s simulations" \
                   % (self.nsimul)
         xlabel, ylabel = "Rounds", "Average coop. level for %s simulations" \
-                                    % (self.nsimul)
+                         % (self.nsimul)
         axis = [0, nround - 1, 0, 100]
         EvoDynUtils.plot(self.results_coop_fig(), average_coop_levels,
-                 axis, xlabel, ylabel, message)
+                         axis, xlabel, ylabel, message)
 
     def _run_simu(self, simuid):
         print()
@@ -442,6 +502,7 @@ class MultipleSimulation:
         print()
         log.info("%d simulations in %d seconds"
                  % (self.nsimul, time.time() - start_time))
+
 
 if __name__ == "__main__":
     MultipleSimulation(EvoDynUtils.get_config()).run()
