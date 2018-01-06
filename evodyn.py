@@ -179,7 +179,8 @@ class Simulation:
 
     def init_data(self):
         return {
-            'coop_levels': list()
+            'coop_levels': list(),
+            'int_coop_levels': list()
         }
 
     def init_lattices(self):
@@ -230,6 +231,13 @@ class Simulation:
         axis = [0, self.nround() - 1, 0, 100]
         xlabel, ylabel = 'Rounds', 'Cooperation level in %'
         EvoDynUtils.plot(self.results_coop_fig(), self.data('coop_levels'),
+                         axis, xlabel, ylabel, message)
+
+    def plot_int_coop_levels(self):
+        message = "Plot intuitive cooperation level"
+        axis = [0, self.nround() - 1, 0, 100]
+        xlabel, ylabel = 'Rounds', 'Int. cooperation level in %'
+        EvoDynUtils.plot(self.results_int_coop_fig(), self.data('int_coop_levels'),
                          axis, xlabel, ylabel, message)
 
     def plot_current(self):
@@ -283,6 +291,9 @@ class Simulation:
 
     def results_coop_fig(self):
         return os.path.join(self.results_dir(), "coop")
+
+    def results_int_coop_fig(self):
+        return os.path.join(self.results_dir(), "int_coop")
 
     def is_update_mechanism(self, mechanism):
         return self.update_mechanism() == mechanism
@@ -413,8 +424,14 @@ class Simulation:
         ncoop = self.rounds.current_counts(ACTIONS['C']['value'])
         return round((ncoop / self.npeople()) * 100, 2)
 
+    def current_intuitive_coop_percentage(self):
+        ncoop = self.intuitive_actions.current_counts(ACTIONS['C']['value'])
+        return round((ncoop / self.npeople()) * 100, 2)
+
     def gather_current_data(self):
         self._data['coop_levels'].append(self.current_coop_percentage())
+        self._data['int_coop_levels'].append(
+            self.current_intuitive_coop_percentage())
 
     def _run_simulation_assign2(self):
         log.info("Starting 'assign2' simulation")
@@ -497,6 +514,7 @@ class Simulation:
                 self.plot_current()
             self.gather_current_data()
         self.plot_coop_levels()
+        self.plot_int_coop_levels()
         log.info("Simulation finished!")
 
     def run(self):

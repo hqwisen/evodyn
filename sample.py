@@ -56,7 +56,7 @@ last_round = (100, 100)
 # Start method: 'probability', 'middle_cluster'
 start_method = 'probability'
 # start_defect_probability = 1 - start_coop_probability
-start_coop_probability = 0.5 # q
+start_coop_probability = 0.5  # q
 # Accepted values: 'moore', 'von_neumann'
 neighbor_type = 'moore'
 # Accepted values: 'unconditional_imitation', 'replicator_rule'
@@ -66,7 +66,7 @@ update_mechanism = 'unconditional_imitation'
 
 # If False, show only time_visualize steps
 # Note that more you plot, more it takes time!
-time_visualize_all = False
+time_visualize_all = True
 # First t is t0
 time_visualize = (1, 5, 10, 20, 50)
 show_color_bar = False
@@ -97,7 +97,7 @@ gamma1 = {
     'payoff': (0, b - c, 0, 0)  # (T, R, P, S)
 }
 
-gamma_p = 0.5  # probability gamma_p to be in gamma1
+gamma_p = 0.7  # probability gamma_p to be in gamma1
 
 gamma = [gamma0, gamma1]
 
