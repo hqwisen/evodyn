@@ -180,7 +180,8 @@ class Simulation:
     def init_data(self):
         return {
             'coop_levels': list(),
-            'int_coop_levels': list()
+            'int_coop_levels': list(),
+            'threshold': list()
         }
 
     def init_lattices(self):
@@ -240,6 +241,13 @@ class Simulation:
         EvoDynUtils.plot(self.results_int_coop_fig(), self.data('int_coop_levels'),
                          axis, xlabel, ylabel, message)
 
+    def plot_mean_threshold(self):
+        message = "Plot mean threshold"
+        axis = [0, self.nround() - 1, 0, 1]
+        xlabel, ylabel = 'Rounds', 'Mean threshold'
+        EvoDynUtils.plot(self.results_threshold_fig(), self.data('threshold'),
+                         axis, xlabel, ylabel, message)
+
     def plot_current(self):
         """Plot the self.rounds.current() matrix."""
         # NOTE from_level_colors will color blue between 0, 1 and
@@ -295,6 +303,9 @@ class Simulation:
     def results_int_coop_fig(self):
         return os.path.join(self.results_dir(), "int_coop")
 
+    def results_threshold_fig(self):
+        return os.path.join(self.results_dir(), "threshold")
+
     def is_update_mechanism(self, mechanism):
         return self.update_mechanism() == mechanism
 
@@ -324,15 +335,15 @@ class Simulation:
 
     def play_unconditional_imitation_with_threshold(self, i, j):
         previous_score = self.scores.previous()
-        previous_round = self.rounds.previous()
+        previous_intuitive_actions = self.intuitive_actions.previous()
         previous_threshold = self.thresholds.previous()
         neighbors = self.neighbors(i, j)
-        best_action, best_score = previous_round[i, j], previous_score[i, j]
+        best_action, best_score = previous_intuitive_actions[i, j], previous_score[i, j]
         best_threshold = previous_threshold[i, j]
         for ni, nj in neighbors:
             # TODO >= or > for unconditional_imitation
             if previous_score[ni, nj] > best_score:
-                best_action = self.intuitive_actions.previous()[ni, nj]
+                best_action = previous_intuitive_actions[ni, nj]
                 best_score = previous_score[ni, nj]
                 best_threshold = previous_threshold[ni, nj]
         return best_action, best_threshold
@@ -416,6 +427,16 @@ class Simulation:
             score += self.payoff[player_action][neighbor_action]
         return score
 
+    def calculate_score_with_deliberation(self, i, j):
+        current_round = self.rounds.current()
+        neighbors = self.neighbors(i, j)
+        score = self.scores.current()[i,j]
+        player_action = current_round[i, j]
+        for ni, nj in neighbors:
+            neighbor_action = current_round[ni, nj]
+            score += self.payoff[player_action][neighbor_action]
+        return score
+
     def npeople(self):
         """Return the number of people playing the game."""
         return self.size * self.size
@@ -428,10 +449,19 @@ class Simulation:
         ncoop = self.intuitive_actions.current_counts(ACTIONS['C']['value'])
         return round((ncoop / self.npeople()) * 100, 2)
 
+    def current_threshold_mean(self):
+        mean = 0
+        current_threshold = self.thresholds.current()
+        for a in range(len(current_threshold)):
+            for b in range(len(current_threshold[a])):
+                mean += current_threshold[a][b]
+        return mean / self.npeople()
+
     def gather_current_data(self):
         self._data['coop_levels'].append(self.current_coop_percentage())
         self._data['int_coop_levels'].append(
             self.current_intuitive_coop_percentage())
+        self._data['threshold'].append(self.current_threshold_mean())
 
     def _run_simulation_assign2(self):
         log.info("Starting 'assign2' simulation")
@@ -463,21 +493,6 @@ class Simulation:
             action, threshold = self.play_unconditional_imitation_with_threshold(i, j)
             return action, threshold
 
-        # if self.cost <= thresholds[i, j]:
-        #     current_score = self.scores.reset_current()
-        #     current_score[i, j] -= self.cost * Neighbor.MOORE_NUMBER_OF_NEIGHBORS
-        #     action = self.deliberate_action()
-        # else:
-        #     action = self.init_actions[i, j]
-
-        # if cost <= T:
-        #     rewardij -= cost
-        #     choice([C, D], [p, 1 - p])  # prob p to be in gamma1 i.e. play C
-        #     return choice
-        # else:
-        #     # return self.play_unconditional_imitation(i, j)
-        #     return self.play_random()
-
     def play_deliberate(self, i, j):
         thresholds = self.thresholds.current()
         if self.cost <= thresholds[i, j]:
@@ -500,21 +515,21 @@ class Simulation:
             self.cost = self.generate_cost()
             current_score = self.scores.reset_current()
             current_round = self.rounds.reset_current()
-            current_threshold = self.thresholds.reset_current()
+            current_threshold = self.thresholds.add_matrix()
             current_int_actions = self.intuitive_actions.add_matrix()
             for i in range(self.size):
                 for j in range(self.size):
                     current_int_actions[i, j], current_threshold[i, j] \
                         = self.play_gamma(i, j)
                     current_round[i, j] = self.play_deliberate(i, j)
-                    current_score[i, j] = self.calculate_score(i, j)
-
+                    current_score[i, j] = self.calculate_score_with_deliberation(i, j)
             if self.config['time_visualize_all'] \
                     or t in self.config['time_visualize']:
                 self.plot_current()
             self.gather_current_data()
         self.plot_coop_levels()
         self.plot_int_coop_levels()
+        self.plot_mean_threshold()
         log.info("Simulation finished!")
 
     def run(self):

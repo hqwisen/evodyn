@@ -66,7 +66,7 @@ update_mechanism = 'unconditional_imitation'
 
 # If False, show only time_visualize steps
 # Note that more you plot, more it takes time!
-time_visualize_all = True
+time_visualize_all = False
 # First t is t0
 time_visualize = (1, 5, 10, 20, 50)
 show_color_bar = False
