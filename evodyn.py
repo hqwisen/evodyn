@@ -114,6 +114,9 @@ class Neighbor:
                (down, c)
 
 
+Neighbor.MOORE_NUMBER_OF_NEIGHBORS = 8
+
+
 class Lattice:
 
     def __init__(self, size):
@@ -166,7 +169,9 @@ class Simulation:
         self._results_dir = None
         self.t = 0
         self._data = self.init_data()
-        self.rounds, self.scores = self.init_lattices()
+        self.rounds, self.scores, self.thresholds = self.init_lattices()
+        self.init_actions = np.zeros((self.size, self.size))
+        self.intuitive_actions = Lattice(self.size)
         self.generate_results_dir()
 
     def data(self, key=None):
@@ -178,14 +183,17 @@ class Simulation:
         }
 
     def init_lattices(self):
-        rounds, scores = Lattice(self.size), Lattice(self.size)
+        rounds, scores, thresholds = Lattice(self.size),\
+                                     Lattice(self.size), Lattice(self.size)
         # Create current and previous matrix,
         # to be used with Lattice.reset_current()
         rounds.add_matrix()
         rounds.add_matrix()
         scores.add_matrix()
         scores.add_matrix()
-        return rounds, scores
+        thresholds.add_matrix()
+        thresholds.add_matrix()
+        return rounds, scores, thresholds
 
     def build_payoff(self):
         if self.config['simulation_type'] == 'assign2':
@@ -303,6 +311,21 @@ class Simulation:
                 best_score = previous_score[ni, nj]
         return best_action
 
+    def play_unconditional_imitation_with_threshold(self, i, j):
+        previous_score = self.scores.previous()
+        previous_round = self.rounds.previous()
+        previous_threshold = self.thresholds.previous()
+        neighbors = self.neighbors(i, j)
+        best_action, best_score = previous_round[i, j], previous_score[i, j]
+        best_threshold = previous_threshold[i, j]
+        for ni, nj in neighbors:
+            # TODO >= or > for unconditional_imitation
+            if previous_score[ni, nj] > best_score:
+                best_action = self.intuitive_actions.previous()[ni, nj]
+                best_score = previous_score[ni, nj]
+                best_threshold = previous_threshold[ni, nj]
+        return best_action, best_threshold
+
     def play_replicator_rule(self, i, j):
         # Following the same notation as the specifications
         # TODO check that it is working as expected
@@ -347,14 +370,28 @@ class Simulation:
             raise SimulationException("Unknown start " \
                                       "method: '%s'" % self.config['start_method'])
 
-    def play_gamma(self, i, j):
-        return None
+    def play_gamma_first(self):
+        a, b = self.config['threshold_dist']
+        return self.play_random(), np.random.uniform(a, b)
+
+    def generate_cost(self):
+        a, b = self.config['cost_dist']
+        z = np.random.uniform(a, b)
+        return 1 - (1 / (1 + z) ** 4)
+
+    def deliberate_action(self):
+        if self.payoff['name'] == 'coordination game':
+            return ACTIONS['C']['value']
+        elif self.payoff['name'] == 'prisoners dilemma':
+            return ACTIONS['D']['value']
+        else:
+            raise SimulationException("Unknown game name: %s" % self.payoff['name'])
 
     def play(self, i, j):
-        if self.t == 0:
-            return self.play_first(i, j)
-        elif self.config['simulation_type'] == 'gamma':
+        if self.config['simulation_type'] == 'gamma':
             return self.play_gamma(i, j)
+        elif self.t == 0:
+            return self.play_first(i, j)
         else:
             return self.play_mechanism(i, j)
 
@@ -401,22 +438,60 @@ class Simulation:
         self.plot_coop_levels()
         log.info("Simulation finished!")
 
+    def play_gamma(self, i, j):
+        if self.t == 0:
+            action_and_thres = self.play_gamma_first()
+            return action_and_thres
+        else:
+            action, threshold = self.play_unconditional_imitation_with_threshold(i, j)
+            return action, threshold
+
+        # if self.cost <= thresholds[i, j]:
+        #     current_score = self.scores.reset_current()
+        #     current_score[i, j] -= self.cost * Neighbor.MOORE_NUMBER_OF_NEIGHBORS
+        #     action = self.deliberate_action()
+        # else:
+        #     action = self.init_actions[i, j]
+
+        # if cost <= T:
+        #     rewardij -= cost
+        #     choice([C, D], [p, 1 - p])  # prob p to be in gamma1 i.e. play C
+        #     return choice
+        # else:
+        #     # return self.play_unconditional_imitation(i, j)
+        #     return self.play_random()
+
+    def play_deliberate(self, i, j):
+        thresholds = self.thresholds.current()
+        if self.cost <= thresholds[i, j]:
+            current_score = self.scores.current()
+            current_score[i, j] -= self.cost * Neighbor.MOORE_NUMBER_OF_NEIGHBORS
+            action = self.deliberate_action()
+        else:
+            action = self.intuitive_actions.current()[i, j]
+        return action
+
     def _run_simulation_gamma(self):
         log.info("Starting 'gamma' simulation")
         if self.config['time_visualize_all']:
             log.info("All rounds will be plotted")
         for t in range(self.nround()):
+            # Update gamma game
             self.payoff = self.build_payoff()
-            log.info("Game for round %d: %s" % (t, self.payoff['name']))
+            # log.info("Game for round %d: %s" % (t, self.payoff['name']))
             self.t = t
+            self.cost = self.generate_cost()
             current_score = self.scores.reset_current()
             current_round = self.rounds.reset_current()
+            current_threshold = self.thresholds.reset_current()
+            current_int_actions = self.intuitive_actions.add_matrix()
             for i in range(self.size):
                 for j in range(self.size):
-                    current_round[i, j] = self.play(i, j)
-            for i in range(self.size):
-                for j in range(self.size):
+                    current_int_actions[i, j], current_threshold[i, j] \
+                        = self.play_gamma(i, j)
+                    current_round[i, j] = self.play_deliberate(i, j)
                     current_score[i, j] = self.calculate_score(i, j)
+
             if self.config['time_visualize_all'] \
                     or t in self.config['time_visualize']:
                 self.plot_current()
